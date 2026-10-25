@@ -1,0 +1,26 @@
+{
+  "apiVersion": "v1",
+  "componentVersion": "0.1.0",
+  "supportedSubstrateVersion": "v0.6.1-0.20261023032142-4ebd668d62e3",
+  "backendStartedAt": "2026-10-25T12:00:00Z",
+  "observedAt": "2026-10-25T12:15:10Z",
+  "scope": { "atespace": "large", "workerPool": "agents" },
+  "capabilities": ["OBSERVE"],
+  "connection": { "state": "CONNECTED", "message": "Control API observation complete", "lastSuccessfulObservationAt": "2026-10-25T12:15:10Z" },
+  "actorSummary": { "total": 501, "states": [{ "state": "SUSPENDED", "count": 501 }] },
+  "workerSummary": { "total": 101, "occupied": 0, "assignments": 0, "states": [{ "state": "ACTIVE", "count": 101 }] },
+  "transitionSummary": { "total": 0, "resumes": 0, "suspends": 0 },
+  "efficiency": {
+    "fleetRatio": { "numerator": 501, "denominator": 101, "value": 4.9603960396 },
+    "observedDensity": { "available": false, "actorsAtPeak": 0, "occupiedWorkersAtPeak": 0, "value": null, "windowSeconds": 900, "sampleAgeSeconds": 60 }
+  },
+  "truncation": {
+    "actors": { "truncated": true, "total": 501, "returned": 1, "limit": 1 },
+    "workers": { "truncated": true, "total": 101, "returned": 1, "limit": 1 }
+  },
+  "actors": [{ "name": "agent-001", "atespace": "large", "state": "SUSPENDED" }],
+  "workers": [{ "name": "worker-001", "namespace": "agents", "pool": "agents", "pod": "agents-001", "node": "node-a", "state": "ACTIVE", "actorNames": [], "resources": [] }],
+  "transitions": [],
+  "operations": []
+}
+

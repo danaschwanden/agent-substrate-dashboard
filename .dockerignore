@@ -1,0 +1,12 @@
+.git
+.cache
+.DS_Store
+node_modules
+frontend/dist
+frontend/test-results
+frontend/playwright-report
+backend/dashboard-backend
+coverage
+deploy
+docs
+*.md

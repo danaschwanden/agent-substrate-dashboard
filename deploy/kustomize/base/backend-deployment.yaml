@@ -1,0 +1,97 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: agent-substrate-dashboard-backend
+spec:
+  replicas: 1
+  revisionHistoryLimit: 3
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: agent-substrate-dashboard
+      app.kubernetes.io/component: backend
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: agent-substrate-dashboard
+        app.kubernetes.io/component: backend
+    spec:
+      serviceAccountName: agent-substrate-dashboard
+      automountServiceAccountToken: false
+      terminationGracePeriodSeconds: 15
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65532
+        runAsGroup: 65532
+        fsGroup: 65532
+        fsGroupChangePolicy: OnRootMismatch
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - name: backend
+        image: agent-substrate-dashboard-backend
+        imagePullPolicy: IfNotPresent
+        envFrom:
+        - configMapRef:
+            name: agent-substrate-dashboard-config
+        env:
+        - name: DASHBOARD_LISTEN_ADDRESS
+          value: :8080
+        - name: DASHBOARD_CONTROL_TOKEN_FILE
+          value: /var/run/dashboard-identity/token
+        - name: DASHBOARD_CONTROL_TRUST_BUNDLE_FILE
+          value: /var/run/dashboard-identity/trust-bundle.pem
+        ports:
+        - name: http
+          containerPort: 8080
+          protocol: TCP
+        startupProbe:
+          httpGet:
+            path: /healthz
+            port: http
+          periodSeconds: 2
+          failureThreshold: 15
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: http
+          periodSeconds: 10
+          timeoutSeconds: 2
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /readyz
+            port: http
+          periodSeconds: 5
+          timeoutSeconds: 2
+          failureThreshold: 3
+        resources:
+          requests:
+            cpu: 25m
+            memory: 64Mi
+          limits:
+            cpu: 500m
+            memory: 256Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop: ["ALL"]
+        volumeMounts:
+        - name: identity
+          mountPath: /var/run/dashboard-identity
+          readOnly: true
+      volumes:
+      - name: identity
+        projected:
+          defaultMode: 0440
+          sources:
+          - serviceAccountToken:
+              audience: api.ate-system.svc
+              expirationSeconds: 3600
+              path: token
+          - clusterTrustBundle:
+              signerName: servicedns.podcert.ate.dev/identity
+              labelSelector:
+                matchLabels:
+                  podcert.ate.dev/canarying: live
+              path: trust-bundle.pem

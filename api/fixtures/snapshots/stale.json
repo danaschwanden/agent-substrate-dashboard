@@ -1,0 +1,26 @@
+{
+  "apiVersion": "v1",
+  "componentVersion": "0.1.0",
+  "supportedSubstrateVersion": "v0.6.1-0.20261023032142-4ebd668d62e3",
+  "backendStartedAt": "2026-10-25T12:00:00Z",
+  "observedAt": "2026-10-25T12:14:00Z",
+  "scope": { "atespace": "demo", "workerPool": "agents" },
+  "capabilities": ["OBSERVE"],
+  "connection": { "state": "STALE", "message": "Control API request timed out", "lastSuccessfulObservationAt": "2026-10-25T12:14:00Z" },
+  "actorSummary": { "total": 1, "states": [{ "state": "SUSPENDED", "count": 1 }] },
+  "workerSummary": { "total": 1, "occupied": 0, "assignments": 0, "states": [{ "state": "ACTIVE", "count": 1 }] },
+  "transitionSummary": { "total": 0, "resumes": 0, "suspends": 0 },
+  "efficiency": {
+    "fleetRatio": { "numerator": 1, "denominator": 1, "value": 1 },
+    "observedDensity": { "available": false, "actorsAtPeak": 0, "occupiedWorkersAtPeak": 0, "value": null, "windowSeconds": 900, "sampleAgeSeconds": 840 }
+  },
+  "truncation": {
+    "actors": { "truncated": false, "total": 1, "returned": 1, "limit": 500 },
+    "workers": { "truncated": false, "total": 1, "returned": 1, "limit": 100 }
+  },
+  "actors": [{ "name": "agent-a", "atespace": "demo", "state": "SUSPENDED" }],
+  "workers": [{ "name": "worker-a", "namespace": "agents", "pool": "agents", "pod": "agents-a", "node": "node-a", "state": "ACTIVE", "actorNames": [], "resources": [] }],
+  "transitions": [],
+  "operations": []
+}
+

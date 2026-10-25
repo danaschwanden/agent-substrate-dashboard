@@ -1,0 +1,14 @@
+{
+  "fixtures": [
+    { "path": "snapshots/idle.json", "schema": "DashboardSnapshot" },
+    { "path": "snapshots/active.json", "schema": "DashboardSnapshot" },
+    { "path": "snapshots/mixed.json", "schema": "DashboardSnapshot" },
+    { "path": "snapshots/crashed.json", "schema": "DashboardSnapshot" },
+    { "path": "snapshots/saturated.json", "schema": "DashboardSnapshot" },
+    { "path": "snapshots/stale.json", "schema": "DashboardSnapshot" },
+    { "path": "snapshots/truncated.json", "schema": "DashboardSnapshot" },
+    { "path": "snapshots/partial-failure.json", "schema": "DashboardSnapshot" },
+    { "path": "operations/partial-failure.json", "schema": "BulkOperationResponse" }
+  ]
+}
+

@@ -1,0 +1,35 @@
+{
+  "apiVersion": "v1",
+  "componentVersion": "0.1.0",
+  "supportedSubstrateVersion": "v0.6.1-0.20261023032142-4ebd668d62e3",
+  "backendStartedAt": "2026-10-25T12:00:00Z",
+  "observedAt": "2026-10-25T12:15:02Z",
+  "scope": { "atespace": "demo", "workerPool": "agents" },
+  "capabilities": ["OBSERVE", "RESUME", "SUSPEND"],
+  "connection": { "state": "CONNECTED", "message": "Control API observation complete", "lastSuccessfulObservationAt": "2026-10-25T12:15:02Z" },
+  "actorSummary": { "total": 2, "states": [{ "state": "RUNNING", "count": 1 }, { "state": "SUSPENDED", "count": 1 }] },
+  "workerSummary": { "total": 2, "occupied": 1, "assignments": 1, "states": [{ "state": "ACTIVE", "count": 2 }] },
+  "transitionSummary": { "total": 2, "resumes": 2, "suspends": 0 },
+  "efficiency": {
+    "fleetRatio": { "numerator": 2, "denominator": 2, "value": 1 },
+    "observedDensity": { "available": true, "actorsAtPeak": 2, "occupiedWorkersAtPeak": 1, "value": 2, "windowSeconds": 900, "sampleAgeSeconds": 900 }
+  },
+  "truncation": {
+    "actors": { "truncated": false, "total": 2, "returned": 2, "limit": 500 },
+    "workers": { "truncated": false, "total": 2, "returned": 2, "limit": 100 }
+  },
+  "actors": [
+    { "name": "agent-a", "atespace": "demo", "state": "RUNNING", "workerName": "worker-a", "assignedNode": "node-a", "crashSummary": null },
+    { "name": "agent-b", "atespace": "demo", "state": "SUSPENDED", "workerName": null, "assignedNode": null, "crashSummary": null }
+  ],
+  "workers": [
+    { "name": "worker-a", "namespace": "agents", "pool": "agents", "pod": "agents-a", "node": "node-a", "state": "ACTIVE", "actorNames": ["agent-a"], "resources": [{ "name": "memory", "unit": "bytes", "capacity": "8589934592", "allocated": "2147483648" }] },
+    { "name": "worker-b", "namespace": "agents", "pool": "agents", "pod": "agents-b", "node": "node-b", "state": "ACTIVE", "actorNames": [], "resources": [{ "name": "memory", "unit": "bytes", "capacity": "8589934592", "allocated": "0" }] }
+  ],
+  "transitions": [
+    { "observedAt": "2026-10-25T12:14:58Z", "actorName": "agent-a", "previousState": "RESUMING", "currentState": "RUNNING" },
+    { "observedAt": "2026-10-25T12:14:54Z", "actorName": "agent-a", "previousState": "SUSPENDED", "currentState": "RESUMING" }
+  ],
+  "operations": []
+}
+

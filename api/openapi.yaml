@@ -1,0 +1,703 @@
+openapi: 3.0.3
+info:
+  title: Agent Substrate Dashboard API
+  version: 0.1.0
+  description: >-
+    Versioned boundary between the Agent Substrate Dashboard frontend and
+    backend. The API exposes a normalized, allowlisted projection of one
+    configured atespace and worker pool.
+servers:
+  - url: /
+paths:
+  /api/v1/meta:
+    get:
+      operationId: getMeta
+      summary: Read component compatibility and capability metadata.
+      responses:
+        "200":
+          description: Dashboard backend metadata.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Meta"
+  /api/v1/snapshot:
+    get:
+      operationId: getSnapshot
+      summary: Read the latest normalized fleet observation.
+      responses:
+        "200":
+          description: Latest Dashboard Snapshot, which may be stale.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardSnapshot"
+        "503":
+          description: No successful observation is available yet.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/operations/resume:
+    post:
+      operationId: resumeActors
+      summary: Resume explicitly selected actors.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BulkOperationRequest"
+      responses:
+        "200":
+          description: One outcome for every requested actor.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BulkOperationResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "503":
+          $ref: "#/components/responses/Unavailable"
+  /api/v1/operations/suspend:
+    post:
+      operationId: suspendActors
+      summary: Suspend explicitly selected actors.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BulkOperationRequest"
+      responses:
+        "200":
+          description: One outcome for every requested actor.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BulkOperationResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "503":
+          $ref: "#/components/responses/Unavailable"
+  /healthz:
+    get:
+      operationId: getLiveness
+      summary: Check backend process liveness.
+      responses:
+        "200":
+          description: The backend process is live.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Health"
+  /readyz:
+    get:
+      operationId: getReadiness
+      summary: Check configuration, authentication, and first-observation readiness.
+      responses:
+        "200":
+          description: The backend is ready.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Health"
+        "503":
+          description: The backend is not ready.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Health"
+components:
+  responses:
+    BadRequest:
+      description: The operation request is invalid.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    Forbidden:
+      description: The backend is observe-only or lacks permission.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    Unavailable:
+      description: The Control API is unavailable.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+  schemas:
+    ApiVersion:
+      type: string
+      description: Version of the frontend/backend HTTP contract.
+      enum: [v1]
+    Capability:
+      type: string
+      description: An operation the configured backend permits.
+      enum: [OBSERVE, RESUME, SUSPEND]
+    ActorState:
+      type: string
+      description: Normalized Agent Substrate actor lifecycle state.
+      enum:
+        - UNKNOWN
+        - RESUMING
+        - RUNNING
+        - SUSPENDING
+        - SUSPENDED
+        - CRASHED
+        - DELETING
+        - REVERTING
+    WorkerState:
+      type: string
+      description: Normalized Agent Substrate worker state.
+      enum: [UNKNOWN, ACTIVE, DRAINING, UNAVAILABLE]
+    ConnectionState:
+      type: string
+      description: Backend connectivity to the Agent Substrate Control API.
+      enum: [CONNECTED, STALE, UNAVAILABLE]
+    OperationType:
+      type: string
+      description: Agent Substrate lifecycle operation requested through the dashboard.
+      enum: [RESUME, SUSPEND]
+    OperationOutcome:
+      type: string
+      description: Result of one actor request within a non-atomic bulk operation.
+      enum: [SUCCEEDED, FAILED]
+    Scope:
+      type: object
+      description: The single fleet observed by this backend instance.
+      additionalProperties: false
+      required: [atespace, workerPool]
+      properties:
+        atespace:
+          type: string
+          minLength: 1
+          description: Configured Agent Substrate atespace.
+        workerPool:
+          type: string
+          minLength: 1
+          description: Selected Agent Substrate worker pool.
+    Meta:
+      type: object
+      description: Compatibility and capability metadata for independently deployed components.
+      additionalProperties: false
+      required:
+        - apiVersion
+        - componentVersion
+        - supportedSubstrateVersion
+        - capabilities
+        - scope
+      properties:
+        apiVersion:
+          $ref: "#/components/schemas/ApiVersion"
+        componentVersion:
+          type: string
+          minLength: 1
+          description: Dashboard backend build version.
+        supportedSubstrateVersion:
+          type: string
+          minLength: 1
+          description: Exact Agent Substrate module version supported by this release.
+        capabilities:
+          type: array
+          uniqueItems: true
+          description: Operations enabled by backend configuration.
+          items:
+            $ref: "#/components/schemas/Capability"
+        scope:
+          $ref: "#/components/schemas/Scope"
+    ControlApiConnection:
+      type: object
+      description: Narrow status of the backend's Control API observations.
+      additionalProperties: false
+      required: [state, message]
+      properties:
+        state:
+          $ref: "#/components/schemas/ConnectionState"
+        message:
+          type: string
+          maxLength: 256
+          description: Bounded operator-facing explanation.
+        lastSuccessfulObservationAt:
+          type: string
+          format: date-time
+          nullable: true
+          description: Time of the last complete successful fleet observation.
+    ActorStateCount:
+      type: object
+      description: Number of actors in one normalized lifecycle state.
+      additionalProperties: false
+      required: [state, count]
+      properties:
+        state:
+          $ref: "#/components/schemas/ActorState"
+        count:
+          type: integer
+          minimum: 0
+          description: Number of matching resources.
+    WorkerStateCount:
+      type: object
+      description: Number of workers in one normalized state.
+      additionalProperties: false
+      required: [state, count]
+      properties:
+        state:
+          $ref: "#/components/schemas/WorkerState"
+        count:
+          type: integer
+          minimum: 0
+          description: Number of matching resources.
+    ActorSummary:
+      type: object
+      description: Aggregate actor state for the configured atespace.
+      additionalProperties: false
+      required: [total, states]
+      properties:
+        total:
+          type: integer
+          minimum: 0
+          description: Total managed actors before presentation truncation.
+        states:
+          type: array
+          description: Counts for lifecycle states present in the observation.
+          items:
+            $ref: "#/components/schemas/ActorStateCount"
+    WorkerSummary:
+      type: object
+      description: Aggregate worker and assignment state for the selected pool.
+      additionalProperties: false
+      required: [total, occupied, assignments, states]
+      properties:
+        total:
+          type: integer
+          minimum: 0
+          description: Total selected workers before presentation truncation.
+        occupied:
+          type: integer
+          minimum: 0
+          description: Workers with at least one actor assignment.
+        assignments:
+          type: integer
+          minimum: 0
+          description: Total actors assigned to selected workers.
+        states:
+          type: array
+          description: Counts for worker states present in the observation.
+          items:
+            $ref: "#/components/schemas/WorkerStateCount"
+    TransitionSummary:
+      type: object
+      description: Actor transitions observed since this backend started.
+      additionalProperties: false
+      required: [total, resumes, suspends]
+      properties:
+        total:
+          type: integer
+          minimum: 0
+          description: Total retained transitions.
+        resumes:
+          type: integer
+          minimum: 0
+          description: Transitions entering Resuming or Running from Suspended.
+        suspends:
+          type: integer
+          minimum: 0
+          description: Transitions entering Suspending or Suspended from Running.
+    Ratio:
+      type: object
+      description: A named numerator and denominator with an optional quotient.
+      additionalProperties: false
+      required: [numerator, denominator, value]
+      properties:
+        numerator:
+          type: integer
+          minimum: 0
+          description: Count above the ratio line.
+        denominator:
+          type: integer
+          minimum: 0
+          description: Count below the ratio line.
+        value:
+          type: number
+          format: double
+          minimum: 0
+          nullable: true
+          description: Quotient, or null when the denominator is zero.
+    ObservedDensity:
+      type: object
+      description: Density at peak occupied-worker demand within a rolling window.
+      additionalProperties: false
+      required:
+        - available
+        - actorsAtPeak
+        - occupiedWorkersAtPeak
+        - value
+        - windowSeconds
+        - sampleAgeSeconds
+      properties:
+        available:
+          type: boolean
+          description: Whether enough non-zero demand has been observed to report density.
+        actorsAtPeak:
+          type: integer
+          minimum: 0
+          description: Managed actors in the sample with peak occupied-worker demand.
+        occupiedWorkersAtPeak:
+          type: integer
+          minimum: 0
+          description: Occupied workers in the peak-demand sample.
+        value:
+          type: number
+          format: double
+          minimum: 0
+          nullable: true
+          description: actorsAtPeak divided by occupiedWorkersAtPeak, or null when unavailable.
+        windowSeconds:
+          type: integer
+          minimum: 1
+          description: Configured rolling observation window.
+        sampleAgeSeconds:
+          type: integer
+          minimum: 0
+          description: Age of the oldest retained density sample.
+    Efficiency:
+      type: object
+      description: Measured fleet ratios without cost or savings claims.
+      additionalProperties: false
+      required: [fleetRatio, observedDensity]
+      properties:
+        fleetRatio:
+          $ref: "#/components/schemas/Ratio"
+        observedDensity:
+          $ref: "#/components/schemas/ObservedDensity"
+    ResourceAllocation:
+      type: object
+      description: One worker resource dimension using lossless quantity strings.
+      additionalProperties: false
+      required: [name, unit, capacity, allocated]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          description: Stable resource dimension name.
+        unit:
+          type: string
+          minLength: 1
+          description: Unit used by capacity and allocation.
+        capacity:
+          type: string
+          pattern: "^[0-9]+(?:\\.[0-9]+)?$"
+          description: Total capacity as a non-negative decimal string.
+        allocated:
+          type: string
+          pattern: "^[0-9]+(?:\\.[0-9]+)?$"
+          description: Allocated amount as a non-negative decimal string.
+    Actor:
+      type: object
+      description: Allowlisted dashboard projection of one Agent Substrate actor.
+      additionalProperties: false
+      required: [name, atespace, state]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          description: Actor resource name.
+        atespace:
+          type: string
+          minLength: 1
+          description: Actor atespace, equal to the Dashboard Scope atespace.
+        state:
+          $ref: "#/components/schemas/ActorState"
+        workerName:
+          type: string
+          minLength: 1
+          nullable: true
+          description: Assigned worker name, or null when unassigned.
+        assignedNode:
+          type: string
+          minLength: 1
+          nullable: true
+          description: Assigned Kubernetes node, or null when absent.
+        crashSummary:
+          type: string
+          maxLength: 256
+          nullable: true
+          description: Bounded crash explanation, or null outside Crashed state.
+    Worker:
+      type: object
+      description: Allowlisted dashboard projection of one selected worker.
+      additionalProperties: false
+      required:
+        - name
+        - namespace
+        - pool
+        - pod
+        - node
+        - state
+        - actorNames
+        - resources
+      properties:
+        name:
+          type: string
+          minLength: 1
+          description: Opaque Agent Substrate worker resource name.
+        namespace:
+          type: string
+          minLength: 1
+          description: Kubernetes namespace containing the worker pod.
+        pool:
+          type: string
+          minLength: 1
+          description: Worker pool selected by the Dashboard Scope.
+        pod:
+          type: string
+          minLength: 1
+          description: Kubernetes worker pod name supplied by the Control API.
+        node:
+          type: string
+          minLength: 1
+          description: Kubernetes node name supplied by the Control API.
+        state:
+          $ref: "#/components/schemas/WorkerState"
+        actorNames:
+          type: array
+          uniqueItems: true
+          description: Zero or more actors assigned to this worker.
+          items:
+            type: string
+            minLength: 1
+        resources:
+          type: array
+          description: Worker capacity and allocation dimensions.
+          items:
+            $ref: "#/components/schemas/ResourceAllocation"
+    ObservedTransition:
+      type: object
+      description: Actor state change inferred between two backend observations.
+      additionalProperties: false
+      required: [observedAt, actorName, previousState, currentState]
+      properties:
+        observedAt:
+          type: string
+          format: date-time
+          description: Time the new state was first observed.
+        actorName:
+          type: string
+          minLength: 1
+          description: Actor whose state changed.
+        previousState:
+          $ref: "#/components/schemas/ActorState"
+        currentState:
+          $ref: "#/components/schemas/ActorState"
+    ActorOperationResult:
+      type: object
+      description: Outcome of one actor request within a bulk lifecycle operation.
+      additionalProperties: false
+      required: [actorName, outcome, message]
+      properties:
+        actorName:
+          type: string
+          minLength: 1
+          description: Explicitly requested actor.
+        outcome:
+          $ref: "#/components/schemas/OperationOutcome"
+        message:
+          type: string
+          maxLength: 256
+          description: Bounded outcome explanation, empty on uncomplicated success.
+    DashboardOperation:
+      type: object
+      description: One non-atomic bulk lifecycle operation submitted through the dashboard.
+      additionalProperties: false
+      required:
+        - id
+        - type
+        - requestedAt
+        - completedAt
+        - results
+      properties:
+        id:
+          type: string
+          minLength: 1
+          description: Backend-generated operation identifier.
+        type:
+          $ref: "#/components/schemas/OperationType"
+        requestedAt:
+          type: string
+          format: date-time
+          description: Time the backend accepted the request.
+        completedAt:
+          type: string
+          format: date-time
+          description: Time every per-actor request completed.
+        results:
+          type: array
+          minItems: 1
+          description: One result for every explicitly selected actor.
+          items:
+            $ref: "#/components/schemas/ActorOperationResult"
+    TruncationDetail:
+      type: object
+      description: Whether a presentation list omits resources from aggregate totals.
+      additionalProperties: false
+      required: [truncated, total, returned, limit]
+      properties:
+        truncated:
+          type: boolean
+          description: Whether total exceeds returned.
+        total:
+          type: integer
+          minimum: 0
+          description: Complete resource count observed by the backend.
+        returned:
+          type: integer
+          minimum: 0
+          description: Resources present in the response list.
+        limit:
+          type: integer
+          minimum: 1
+          description: Configured presentation limit.
+    Truncation:
+      type: object
+      description: Presentation limits for potentially large resource lists.
+      additionalProperties: false
+      required: [actors, workers]
+      properties:
+        actors:
+          $ref: "#/components/schemas/TruncationDetail"
+        workers:
+          $ref: "#/components/schemas/TruncationDetail"
+    DashboardSnapshot:
+      type: object
+      description: Coherent normalized observation consumed by the Lit application.
+      additionalProperties: false
+      required:
+        - apiVersion
+        - componentVersion
+        - supportedSubstrateVersion
+        - backendStartedAt
+        - observedAt
+        - scope
+        - capabilities
+        - connection
+        - actorSummary
+        - workerSummary
+        - transitionSummary
+        - efficiency
+        - truncation
+        - actors
+        - workers
+        - transitions
+        - operations
+      properties:
+        apiVersion:
+          $ref: "#/components/schemas/ApiVersion"
+        componentVersion:
+          type: string
+          minLength: 1
+          description: Dashboard backend build version.
+        supportedSubstrateVersion:
+          type: string
+          minLength: 1
+          description: Exact Agent Substrate module version supported by the backend.
+        backendStartedAt:
+          type: string
+          format: date-time
+          description: Start of the current ephemeral observation history.
+        observedAt:
+          type: string
+          format: date-time
+          description: Time represented by this coherent snapshot.
+        scope:
+          $ref: "#/components/schemas/Scope"
+        capabilities:
+          type: array
+          uniqueItems: true
+          description: Operations enabled by backend configuration.
+          items:
+            $ref: "#/components/schemas/Capability"
+        connection:
+          $ref: "#/components/schemas/ControlApiConnection"
+        actorSummary:
+          $ref: "#/components/schemas/ActorSummary"
+        workerSummary:
+          $ref: "#/components/schemas/WorkerSummary"
+        transitionSummary:
+          $ref: "#/components/schemas/TransitionSummary"
+        efficiency:
+          $ref: "#/components/schemas/Efficiency"
+        truncation:
+          $ref: "#/components/schemas/Truncation"
+        actors:
+          type: array
+          description: Actor projections capped by actors.limit.
+          items:
+            $ref: "#/components/schemas/Actor"
+        workers:
+          type: array
+          description: Worker projections capped by workers.limit.
+          items:
+            $ref: "#/components/schemas/Worker"
+        transitions:
+          type: array
+          description: Newest-first Observed Transitions retained since backend start.
+          items:
+            $ref: "#/components/schemas/ObservedTransition"
+        operations:
+          type: array
+          description: Newest-first Dashboard Operations retained since backend start.
+          items:
+            $ref: "#/components/schemas/DashboardOperation"
+    BulkOperationRequest:
+      type: object
+      description: Explicit targets for one non-atomic lifecycle operation.
+      additionalProperties: false
+      required: [actorNames]
+      properties:
+        actorNames:
+          type: array
+          minItems: 1
+          maxItems: 500
+          uniqueItems: true
+          description: Actor names in the configured atespace; implicit fleet-wide targets are forbidden.
+          items:
+            type: string
+            minLength: 1
+    BulkOperationResponse:
+      type: object
+      description: Completed non-atomic lifecycle operation.
+      additionalProperties: false
+      required: [operation]
+      properties:
+        operation:
+          $ref: "#/components/schemas/DashboardOperation"
+    Health:
+      type: object
+      description: Kubernetes probe response.
+      additionalProperties: false
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [ok, not_ready]
+          description: Narrow liveness or readiness result for this endpoint.
+    ErrorResponse:
+      type: object
+      description: Bounded API error safe to display to an operator.
+      additionalProperties: false
+      required: [code, message]
+      properties:
+        code:
+          type: string
+          minLength: 1
+          description: Stable machine-readable error code.
+        message:
+          type: string
+          minLength: 1
+          maxLength: 256
+          description: Bounded operator-facing explanation without credentials or raw payloads.

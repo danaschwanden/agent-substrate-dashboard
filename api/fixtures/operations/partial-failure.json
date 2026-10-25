@@ -1,0 +1,12 @@
+{
+  "operation": {
+    "id": "op-001",
+    "type": "RESUME",
+    "requestedAt": "2026-10-25T12:15:00Z",
+    "completedAt": "2026-10-25T12:15:01Z",
+    "results": [
+      { "actorName": "agent-a", "outcome": "SUCCEEDED", "message": "" },
+      { "actorName": "agent-b", "outcome": "FAILED", "message": "no worker capacity available" }
+    ]
+  }
+}

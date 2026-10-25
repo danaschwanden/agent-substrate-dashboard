@@ -1,0 +1,11 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+- ../../base
+images:
+- name: ghcr.io/danaschwanden/agent-substrate-dashboard-backend
+  newName: registry.example/agent-substrate-dashboard-backend
+  digest: sha256:0000000000000000000000000000000000000000000000000000000000000000
+- name: ghcr.io/danaschwanden/agent-substrate-dashboard-frontend
+  newName: registry.example/agent-substrate-dashboard-frontend
+  digest: sha256:0000000000000000000000000000000000000000000000000000000000000000

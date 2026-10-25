@@ -1,0 +1,38 @@
+{
+  "apiVersion": "v1",
+  "componentVersion": "0.1.0",
+  "supportedSubstrateVersion": "v0.6.1-0.20261023032142-4ebd668d62e3",
+  "backendStartedAt": "2026-10-25T12:00:00Z",
+  "observedAt": "2026-10-25T12:15:12Z",
+  "scope": { "atespace": "demo", "workerPool": "agents" },
+  "capabilities": ["OBSERVE", "RESUME", "SUSPEND"],
+  "connection": { "state": "CONNECTED", "message": "Control API observation complete", "lastSuccessfulObservationAt": "2026-10-25T12:15:12Z" },
+  "actorSummary": { "total": 2, "states": [{ "state": "RUNNING", "count": 1 }, { "state": "SUSPENDED", "count": 1 }] },
+  "workerSummary": { "total": 1, "occupied": 1, "assignments": 1, "states": [{ "state": "ACTIVE", "count": 1 }] },
+  "transitionSummary": { "total": 1, "resumes": 1, "suspends": 0 },
+  "efficiency": {
+    "fleetRatio": { "numerator": 2, "denominator": 1, "value": 2 },
+    "observedDensity": { "available": true, "actorsAtPeak": 2, "occupiedWorkersAtPeak": 1, "value": 2, "windowSeconds": 900, "sampleAgeSeconds": 900 }
+  },
+  "truncation": {
+    "actors": { "truncated": false, "total": 2, "returned": 2, "limit": 500 },
+    "workers": { "truncated": false, "total": 1, "returned": 1, "limit": 100 }
+  },
+  "actors": [
+    { "name": "agent-a", "atespace": "demo", "state": "RUNNING", "workerName": "worker-a", "assignedNode": "node-a" },
+    { "name": "agent-b", "atespace": "demo", "state": "SUSPENDED" }
+  ],
+  "workers": [{ "name": "worker-a", "namespace": "agents", "pool": "agents", "pod": "agents-a", "node": "node-a", "state": "ACTIVE", "actorNames": ["agent-a"], "resources": [] }],
+  "transitions": [{ "observedAt": "2026-10-25T12:15:11Z", "actorName": "agent-a", "previousState": "SUSPENDED", "currentState": "RUNNING" }],
+  "operations": [{
+    "id": "op-001",
+    "type": "RESUME",
+    "requestedAt": "2026-10-25T12:15:00Z",
+    "completedAt": "2026-10-25T12:15:01Z",
+    "results": [
+      { "actorName": "agent-a", "outcome": "SUCCEEDED", "message": "" },
+      { "actorName": "agent-b", "outcome": "FAILED", "message": "no worker capacity available" }
+    ]
+  }]
+}
+

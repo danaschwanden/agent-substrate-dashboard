@@ -1,0 +1,34 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: agent-substrate-dashboard
+resources:
+- namespace.yaml
+- service-account.yaml
+- backend-deployment.yaml
+- backend-service.yaml
+- backend-network-policy.yaml
+- frontend-deployment.yaml
+- frontend-service.yaml
+labels:
+- pairs:
+    app.kubernetes.io/name: agent-substrate-dashboard
+    app.kubernetes.io/managed-by: kustomize
+  includeSelectors: false
+configMapGenerator:
+- name: agent-substrate-dashboard-config
+  literals:
+  - DASHBOARD_ATESPACE=example
+  - DASHBOARD_WORKER_POOL=default
+  - DASHBOARD_CONTROL_ENDPOINT=api.ate-system.svc:443
+  - DASHBOARD_CONTROL_SERVER_NAME=api.ate-system.svc
+  - DASHBOARD_COMPONENT_VERSION=0.1.0
+  - DASHBOARD_ENABLE_OPERATIONS=false
+  - DASHBOARD_OPERATION_CONCURRENCY=4
+  - DASHBOARD_OPERATION_TIMEOUT=10s
+images:
+- name: agent-substrate-dashboard-backend
+  newName: ghcr.io/danaschwanden/agent-substrate-dashboard-backend
+  newTag: v0.1.0
+- name: agent-substrate-dashboard-frontend
+  newName: ghcr.io/danaschwanden/agent-substrate-dashboard-frontend
+  newTag: v0.1.0

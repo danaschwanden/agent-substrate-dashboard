@@ -1,0 +1,38 @@
+{
+  "apiVersion": "v1",
+  "componentVersion": "0.1.0",
+  "supportedSubstrateVersion": "v0.6.1-0.20261023032142-4ebd668d62e3",
+  "backendStartedAt": "2026-10-25T12:00:00Z",
+  "observedAt": "2026-10-25T12:15:08Z",
+  "scope": { "atespace": "demo", "workerPool": "agents" },
+  "capabilities": ["OBSERVE", "RESUME", "SUSPEND"],
+  "connection": { "state": "CONNECTED", "message": "Control API observation complete", "lastSuccessfulObservationAt": "2026-10-25T12:15:08Z" },
+  "actorSummary": { "total": 8, "states": [{ "state": "RUNNING", "count": 6 }, { "state": "SUSPENDED", "count": 2 }] },
+  "workerSummary": { "total": 2, "occupied": 2, "assignments": 6, "states": [{ "state": "ACTIVE", "count": 2 }] },
+  "transitionSummary": { "total": 6, "resumes": 6, "suspends": 0 },
+  "efficiency": {
+    "fleetRatio": { "numerator": 8, "denominator": 2, "value": 4 },
+    "observedDensity": { "available": true, "actorsAtPeak": 8, "occupiedWorkersAtPeak": 2, "value": 4, "windowSeconds": 900, "sampleAgeSeconds": 900 }
+  },
+  "truncation": {
+    "actors": { "truncated": false, "total": 8, "returned": 8, "limit": 500 },
+    "workers": { "truncated": false, "total": 2, "returned": 2, "limit": 100 }
+  },
+  "actors": [
+    { "name": "agent-1", "atespace": "demo", "state": "RUNNING", "workerName": "worker-a", "assignedNode": "node-a" },
+    { "name": "agent-2", "atespace": "demo", "state": "RUNNING", "workerName": "worker-a", "assignedNode": "node-a" },
+    { "name": "agent-3", "atespace": "demo", "state": "RUNNING", "workerName": "worker-a", "assignedNode": "node-a" },
+    { "name": "agent-4", "atespace": "demo", "state": "RUNNING", "workerName": "worker-b", "assignedNode": "node-b" },
+    { "name": "agent-5", "atespace": "demo", "state": "RUNNING", "workerName": "worker-b", "assignedNode": "node-b" },
+    { "name": "agent-6", "atespace": "demo", "state": "RUNNING", "workerName": "worker-b", "assignedNode": "node-b" },
+    { "name": "agent-7", "atespace": "demo", "state": "SUSPENDED" },
+    { "name": "agent-8", "atespace": "demo", "state": "SUSPENDED" }
+  ],
+  "workers": [
+    { "name": "worker-a", "namespace": "agents", "pool": "agents", "pod": "agents-a", "node": "node-a", "state": "ACTIVE", "actorNames": ["agent-1", "agent-2", "agent-3"], "resources": [{ "name": "memory", "unit": "bytes", "capacity": "8589934592", "allocated": "6442450944" }] },
+    { "name": "worker-b", "namespace": "agents", "pool": "agents", "pod": "agents-b", "node": "node-b", "state": "ACTIVE", "actorNames": ["agent-4", "agent-5", "agent-6"], "resources": [{ "name": "memory", "unit": "bytes", "capacity": "8589934592", "allocated": "6442450944" }] }
+  ],
+  "transitions": [],
+  "operations": []
+}
+

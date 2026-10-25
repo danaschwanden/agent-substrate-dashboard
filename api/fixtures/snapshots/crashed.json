@@ -1,0 +1,26 @@
+{
+  "apiVersion": "v1",
+  "componentVersion": "0.1.0",
+  "supportedSubstrateVersion": "v0.6.1-0.20261023032142-4ebd668d62e3",
+  "backendStartedAt": "2026-10-25T12:00:00Z",
+  "observedAt": "2026-10-25T12:15:06Z",
+  "scope": { "atespace": "demo", "workerPool": "agents" },
+  "capabilities": ["OBSERVE"],
+  "connection": { "state": "CONNECTED", "message": "Control API observation complete", "lastSuccessfulObservationAt": "2026-10-25T12:15:06Z" },
+  "actorSummary": { "total": 1, "states": [{ "state": "CRASHED", "count": 1 }] },
+  "workerSummary": { "total": 1, "occupied": 0, "assignments": 0, "states": [{ "state": "UNAVAILABLE", "count": 1 }] },
+  "transitionSummary": { "total": 1, "resumes": 0, "suspends": 0 },
+  "efficiency": {
+    "fleetRatio": { "numerator": 1, "denominator": 1, "value": 1 },
+    "observedDensity": { "available": false, "actorsAtPeak": 0, "occupiedWorkersAtPeak": 0, "value": null, "windowSeconds": 900, "sampleAgeSeconds": 120 }
+  },
+  "truncation": {
+    "actors": { "truncated": false, "total": 1, "returned": 1, "limit": 500 },
+    "workers": { "truncated": false, "total": 1, "returned": 1, "limit": 100 }
+  },
+  "actors": [{ "name": "agent-a", "atespace": "demo", "state": "CRASHED", "crashSummary": "snapshot restore failed" }],
+  "workers": [{ "name": "worker-a", "namespace": "agents", "pool": "agents", "pod": "agents-a", "node": "node-a", "state": "UNAVAILABLE", "actorNames": [], "resources": [] }],
+  "transitions": [{ "observedAt": "2026-10-25T12:15:06Z", "actorName": "agent-a", "previousState": "RESUMING", "currentState": "CRASHED" }],
+  "operations": []
+}
+

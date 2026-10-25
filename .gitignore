@@ -1,0 +1,8 @@
+node_modules/
+frontend/dist/
+backend/dashboard-backend
+coverage/
+frontend/playwright-report/
+frontend/test-results/
+.cache/
+.DS_Store

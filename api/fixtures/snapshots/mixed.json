@@ -1,0 +1,55 @@
+{
+  "apiVersion": "v1",
+  "componentVersion": "0.1.0",
+  "supportedSubstrateVersion": "v0.6.1-0.20261023032142-4ebd668d62e3",
+  "backendStartedAt": "2026-10-25T12:00:00Z",
+  "observedAt": "2026-10-25T12:15:04Z",
+  "scope": { "atespace": "demo", "workerPool": "agents" },
+  "capabilities": ["OBSERVE", "RESUME", "SUSPEND"],
+  "connection": { "state": "CONNECTED", "message": "Control API observation complete", "lastSuccessfulObservationAt": "2026-10-25T12:15:04Z" },
+  "actorSummary": {
+    "total": 8,
+    "states": [
+      { "state": "UNKNOWN", "count": 1 },
+      { "state": "RESUMING", "count": 1 },
+      { "state": "RUNNING", "count": 1 },
+      { "state": "SUSPENDING", "count": 1 },
+      { "state": "SUSPENDED", "count": 1 },
+      { "state": "CRASHED", "count": 1 },
+      { "state": "DELETING", "count": 1 },
+      { "state": "REVERTING", "count": 1 }
+    ]
+  },
+  "workerSummary": { "total": 3, "occupied": 2, "assignments": 4, "states": [{ "state": "ACTIVE", "count": 1 }, { "state": "DRAINING", "count": 1 }, { "state": "UNAVAILABLE", "count": 1 }] },
+  "transitionSummary": { "total": 3, "resumes": 1, "suspends": 1 },
+  "efficiency": {
+    "fleetRatio": { "numerator": 8, "denominator": 3, "value": 2.6666666667 },
+    "observedDensity": { "available": true, "actorsAtPeak": 8, "occupiedWorkersAtPeak": 2, "value": 4, "windowSeconds": 900, "sampleAgeSeconds": 900 }
+  },
+  "truncation": {
+    "actors": { "truncated": false, "total": 8, "returned": 8, "limit": 500 },
+    "workers": { "truncated": false, "total": 3, "returned": 3, "limit": 100 }
+  },
+  "actors": [
+    { "name": "unknown", "atespace": "demo", "state": "UNKNOWN" },
+    { "name": "resuming", "atespace": "demo", "state": "RESUMING", "workerName": "worker-a", "assignedNode": "node-a" },
+    { "name": "running", "atespace": "demo", "state": "RUNNING", "workerName": "worker-a", "assignedNode": "node-a" },
+    { "name": "suspending", "atespace": "demo", "state": "SUSPENDING", "workerName": "worker-b", "assignedNode": "node-b" },
+    { "name": "suspended", "atespace": "demo", "state": "SUSPENDED" },
+    { "name": "crashed", "atespace": "demo", "state": "CRASHED", "crashSummary": "worker process exited" },
+    { "name": "deleting", "atespace": "demo", "state": "DELETING", "workerName": "worker-b", "assignedNode": "node-b" },
+    { "name": "reverting", "atespace": "demo", "state": "REVERTING" }
+  ],
+  "workers": [
+    { "name": "worker-a", "namespace": "agents", "pool": "agents", "pod": "agents-a", "node": "node-a", "state": "ACTIVE", "actorNames": ["resuming", "running"], "resources": [{ "name": "memory", "unit": "bytes", "capacity": "8589934592", "allocated": "4294967296" }] },
+    { "name": "worker-b", "namespace": "agents", "pool": "agents", "pod": "agents-b", "node": "node-b", "state": "DRAINING", "actorNames": ["suspending", "deleting"], "resources": [{ "name": "memory", "unit": "bytes", "capacity": "8589934592", "allocated": "4294967296" }] },
+    { "name": "worker-c", "namespace": "agents", "pool": "agents", "pod": "agents-c", "node": "node-c", "state": "UNAVAILABLE", "actorNames": [], "resources": [] }
+  ],
+  "transitions": [
+    { "observedAt": "2026-10-25T12:15:04Z", "actorName": "crashed", "previousState": "RUNNING", "currentState": "CRASHED" },
+    { "observedAt": "2026-10-25T12:15:02Z", "actorName": "suspending", "previousState": "RUNNING", "currentState": "SUSPENDING" },
+    { "observedAt": "2026-10-25T12:15:00Z", "actorName": "resuming", "previousState": "SUSPENDED", "currentState": "RESUMING" }
+  ],
+  "operations": []
+}
+
