@@ -92,7 +92,7 @@ export DASHBOARD_ENABLE_OPERATIONS=false
 ./scripts/install-kind.sh
 ```
 
-The installer performs preflight checks, builds both images, loads them into the selected kind cluster, generates a local Kustomize overlay with your scope, applies it, and waits for both Deployments. It does not change AccessPolicy.
+The installer performs preflight checks, builds both images, loads them into the selected kind cluster, generates a local Kustomize overlay with your scope, applies it, and waits for the frontend. It does not change AccessPolicy. On a first installation, the backend may report `awaiting AccessPolicy` instead of Ready; that is expected until step 6 is complete.
 
 Confirm that both Pods are running:
 
@@ -135,6 +135,8 @@ Verify the resulting policies:
 ```sh
 kubectl ate get access-policy --global -o yaml
 kubectl ate get access-policy -a "$DASHBOARD_ATESPACE" -o yaml
+kubectl -n agent-substrate-dashboard rollout status \
+  deployment/agent-substrate-dashboard-backend --timeout=60s
 ```
 
 The expected member is:

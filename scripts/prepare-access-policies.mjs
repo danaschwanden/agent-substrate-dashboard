@@ -25,7 +25,9 @@ if (!atespace || !["viewer", "editor"].includes(requestedRole)) {
   process.exit(2);
 }
 
-const outputDirectory = path.join(repositoryRoot, ".cache", "dashboard-access");
+const outputDirectory =
+  process.env.DASHBOARD_POLICY_OUTPUT_DIR ??
+  path.join(repositoryRoot, ".cache", "dashboard-access");
 mkdirSync(outputDirectory, { recursive: true });
 
 const roleRank = { viewer: 1, editor: 2, owner: 3 };
@@ -38,7 +40,14 @@ function readPolicy(scopeArguments) {
   );
 
   if (result.status === 0) {
-    return { policy: parse(result.stdout), action: "update" };
+    const policy = result.stdout.trim() === "" ? null : parse(result.stdout);
+    if (policy === null) {
+      return { policy: { metadata: { name: "default" }, bindings: [] }, action: "create" };
+    }
+    if (typeof policy !== "object" || Array.isArray(policy)) {
+      throw new Error("kubectl ate returned an invalid AccessPolicy document");
+    }
+    return { policy, action: "update" };
   }
 
   const error = `${result.stderr ?? ""}\n${result.stdout ?? ""}`;

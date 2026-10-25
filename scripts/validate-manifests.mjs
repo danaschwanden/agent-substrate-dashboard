@@ -1,6 +1,14 @@
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
-import { readFileSync, readdirSync } from "node:fs";
+import {
+  chmodSync,
+  mkdtempSync,
+  readFileSync,
+  readdirSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
+import { tmpdir } from "node:os";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 import { parse, parseAllDocuments } from "yaml";
@@ -180,6 +188,55 @@ assert.throws(
 );
 for (const supportedVersion of ["v0.27.0", "v0.33.0", "v1.0.0"]) {
   execFileSync(kindVersionCheck, [supportedVersion], { encoding: "utf8" });
+}
+
+const policyTestDirectory = mkdtempSync(path.join(tmpdir(), "dashboard-policy-test-"));
+try {
+  const fakeKubectl = path.join(policyTestDirectory, "kubectl");
+  writeFileSync(
+    fakeKubectl,
+    `#!/bin/sh
+case " $* " in
+  *" --global "*) exit 0 ;;
+  *) printf '%s\\n' 'metadata:' '  name: default' '  uid: existing-policy' '  version: 7' 'bindings:' '  - role: viewer' '    members:' '      - user:existing-viewer' ;;
+esac
+`,
+  );
+  chmodSync(fakeKubectl, 0o755);
+  const policyPreparation = execFileSync(
+    process.execPath,
+    [
+      path.join(repositoryRoot, "scripts/prepare-access-policies.mjs"),
+      "--atespace",
+      "example",
+      "--role",
+      "viewer",
+    ],
+    {
+      cwd: repositoryRoot,
+      encoding: "utf8",
+      env: {
+        ...process.env,
+        DASHBOARD_POLICY_OUTPUT_DIR: policyTestDirectory,
+        PATH: `${policyTestDirectory}:${process.env.PATH}`,
+      },
+    },
+  );
+  assert.match(policyPreparation, /kubectl ate create access-policy '--global'/);
+  assert.match(policyPreparation, /kubectl ate update access-policy '-a' 'example'/);
+  const globalCandidate = parse(
+    readFileSync(path.join(policyTestDirectory, "global.yaml"), "utf8"),
+  );
+  assert.deepEqual(globalCandidate.bindings, [
+    {
+      role: "viewer",
+      members: [
+        "user:system:serviceaccount:agent-substrate-dashboard:agent-substrate-dashboard",
+      ],
+    },
+  ]);
+} finally {
+  rmSync(policyTestDirectory, { recursive: true, force: true });
 }
 
 const publishWorkflow = parse(

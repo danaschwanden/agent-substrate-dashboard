@@ -103,16 +103,27 @@ kubectl --context "${kube_context}" kustomize "${overlay_dir}" >"${repo_dir}/.ca
 kubectl --context "${kube_context}" apply -k "${overlay_dir}"
 
 kubectl --context "${kube_context}" -n agent-substrate-dashboard \
-  rollout status deployment/agent-substrate-dashboard-backend --timeout=180s
-kubectl --context "${kube_context}" -n agent-substrate-dashboard \
   rollout status deployment/agent-substrate-dashboard-frontend --timeout=180s
+
+backend_status="ready"
+if ! kubectl --context "${kube_context}" -n agent-substrate-dashboard \
+  rollout status deployment/agent-substrate-dashboard-backend --timeout=20s; then
+  if kubectl --context "${kube_context}" -n agent-substrate-dashboard \
+    logs deployment/agent-substrate-dashboard-backend --tail=40 2>/dev/null \
+    | grep -q '"control_code":"PermissionDenied"'; then
+    backend_status="awaiting AccessPolicy"
+  else
+    fail "backend did not become ready; inspect it with: kubectl -n agent-substrate-dashboard logs deployment/agent-substrate-dashboard-backend"
+  fi
+fi
 
 cat <<EOF
 
-Dashboard workloads are ready.
+Dashboard workloads are installed. Backend status: ${backend_status}.
 
 Next steps:
   1. Grant AccessPolicy as documented in docs/KIND_QUICKSTART.md.
+     The backend becomes Ready automatically after the grants are applied.
   2. Start browser access:
      kubectl -n agent-substrate-dashboard port-forward service/agent-substrate-dashboard-frontend 8090:80
   3. Open http://127.0.0.1:8090
