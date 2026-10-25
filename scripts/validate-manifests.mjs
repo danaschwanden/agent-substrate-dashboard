@@ -169,6 +169,19 @@ const backendDockerfile = readFileSync(path.join(repositoryRoot, "backend/Docker
 assert.match(backendDockerfile, /ARG TARGETARCH/);
 assert.match(backendDockerfile, /GOARCH=\$\{TARGETARCH\}/);
 
+const kindVersionCheck = path.join(repositoryRoot, "scripts/check-kind-version.sh");
+assert.throws(
+  () =>
+    execFileSync(kindVersionCheck, ["v0.26.0"], {
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "pipe"],
+    }),
+  (error) => error.status === 1 && error.stderr.includes("v0.27.0 or newer"),
+);
+for (const supportedVersion of ["v0.27.0", "v0.33.0", "v1.0.0"]) {
+  execFileSync(kindVersionCheck, [supportedVersion], { encoding: "utf8" });
+}
+
 const publishWorkflow = parse(
   readFileSync(path.join(repositoryRoot, ".github/workflows/publish-images.yaml"), "utf8"),
 );

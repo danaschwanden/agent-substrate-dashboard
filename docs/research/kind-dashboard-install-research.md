@@ -27,6 +27,7 @@ The findings below use the current dashboard repository plus current first-party
 ### 3. Local images and browser access
 
 - For a local checkout, the simplest deterministic loop is to build `agent-substrate-dashboard-backend:dev` and `agent-substrate-dashboard-frontend:dev`, then run `kind load docker-image ... --name "$KIND_CLUSTER_NAME"`. This matches the existing kind overlay and its `IfNotPresent` pull policy. kind officially supports loading one or more local Docker images into a named cluster. [kind quick start](https://kind.sigs.k8s.io/docs/user/quick-start/#loading-an-image-into-your-cluster)
+- kind v0.26.0 cannot detect the containerd v2 snapshotter configuration used by newer node images. The same `failed to detect containerd snapshotter` failure is tracked upstream and fixed in the v0.27.0 milestone, so the installer must reject older kind clients before building images. [kind issue #3853](https://github.com/kubernetes-sigs/kind/issues/3853)
 - A fixed NodePort is not portable unless the kind configuration maps that port to the host. The dashboard overlay now keeps both Services internal and uses `kubectl port-forward -n agent-substrate-dashboard svc/agent-substrate-dashboard-frontend 8090:80` as the reliable cross-platform access path. The upstream Substrate quickstart likewise uses `kubectl port-forward` for host access. [Agent Substrate README](https://github.com/agent-substrate/substrate#quickstart-development)
 
 ### 4. Authorization requirements and safe policy workflow

@@ -10,7 +10,7 @@ You need Docker, `kind`, `kubectl`, the `kubectl ate` plugin, Node.js 22, and np
 
 ```sh
 docker version
-kind version
+kind version # must be v0.27.0 or newer
 kubectl version --client
 kubectl ate version
 node --version
@@ -18,6 +18,14 @@ npm --version
 ```
 
 Agent Substrate's development quickstart installs the `kubectl ate` plugin and creates a kind cluster with the feature gates needed for projected identity. If your cluster was created another way, verify that it supports `ClusterTrustBundle` projection before continuing. See the [Agent Substrate quickstart](https://github.com/agent-substrate/substrate#quickstart-development) and [kind image-loading guide](https://kind.sigs.k8s.io/docs/user/quick-start/#loading-an-image-into-your-cluster).
+
+kind v0.26.0 cannot load images into nodes using containerd 2.x and fails with `ERROR: failed to detect containerd snapshotter`. Upgrade to at least v0.27.0 before using the local-image path:
+
+```sh
+# macOS with Homebrew
+brew upgrade kind
+kind version
+```
 
 ## 2. Open the dashboard checkout
 
@@ -191,6 +199,7 @@ kubectl -n agent-substrate-dashboard describe pod -l app.kubernetes.io/component
 ```
 
 - `ImagePullBackOff`: for local images, confirm `KIND_CLUSTER_NAME` names the cluster you loaded. For GHCR, confirm the package is public or configure an image pull secret.
+- `failed to detect containerd snapshotter`: `kind version` is older than v0.27.0. Upgrade kind and rerun the installer; recreating the cluster is not required for this loader error.
 - Backend connection timeout: verify `kubectl get namespace agent-substrate-dashboard --show-labels` includes `ate.dev/api-access=true`, and verify the `api` Service exists in `ate-system`.
 - Projected-volume or ClusterTrustBundle error: the kind cluster was not created with the Agent Substrate feature gates; recreate it using the supported Substrate cluster setup.
 - `PermissionDenied` from `/api/v1/snapshot`: verify both the global and atespace policies and the exact ServiceAccount member shown above.

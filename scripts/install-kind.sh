@@ -46,6 +46,7 @@ fi
 if [[ "${image_source}" == "local" ]]; then
   require_command docker
   require_command kind
+  "${repo_dir}/scripts/check-kind-version.sh"
   docker info >/dev/null
 
   printf 'Building local dashboard images...\n'
