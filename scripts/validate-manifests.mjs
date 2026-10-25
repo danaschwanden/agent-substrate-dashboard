@@ -3,7 +3,7 @@ import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
-import { parseAllDocuments } from "yaml";
+import { parse, parseAllDocuments } from "yaml";
 
 const repositoryRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -143,5 +143,26 @@ for (const relativePath of ["backend/Dockerfile", "frontend/Dockerfile"]) {
 const backendDockerfile = readFileSync(path.join(repositoryRoot, "backend/Dockerfile"), "utf8");
 assert.match(backendDockerfile, /ARG TARGETARCH/);
 assert.match(backendDockerfile, /GOARCH=\$\{TARGETARCH\}/);
+
+const publishWorkflow = parse(
+  readFileSync(path.join(repositoryRoot, ".github/workflows/publish-images.yaml"), "utf8"),
+);
+assert.deepEqual(publishWorkflow.on.push.branches, ["main"]);
+assert.deepEqual(publishWorkflow.on.push.tags, ["v*"]);
+assert.equal(publishWorkflow.on.pull_request, undefined, "publishing must not run for pull requests");
+const publishJob = publishWorkflow.jobs.publish;
+assert.equal(publishJob.needs, "validate");
+assert.equal(publishJob.permissions.contents, "read");
+assert.equal(publishJob.permissions.packages, "write");
+assert.deepEqual(publishJob.strategy.matrix.component, ["backend", "frontend"]);
+const loginStep = publishJob.steps.find((step) => step.uses?.startsWith("docker/login-action@"));
+assert.equal(loginStep?.with.registry, "ghcr.io");
+assert.equal(loginStep?.with.password, "${{ secrets.GITHUB_TOKEN }}");
+const buildStep = publishJob.steps.find((step) =>
+  step.uses?.startsWith("docker/build-push-action@"),
+);
+assert.equal(buildStep?.with.platforms, "linux/amd64,linux/arm64");
+assert.equal(buildStep?.with.push, true);
+assert.match(buildStep?.with.tags ?? "", /steps\.meta\.outputs\.tags/);
 
 console.log("Deployment manifests and container packaging invariants are valid.");

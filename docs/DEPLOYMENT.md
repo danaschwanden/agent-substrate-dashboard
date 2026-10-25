@@ -16,7 +16,24 @@ docker buildx build --platform linux/amd64,linux/arm64 \
   -f frontend/Dockerfile -t REGISTRY/agent-substrate-dashboard-frontend:v0.1.0 .
 ```
 
-Add `--push` only when intentionally publishing. The repository CI builds both platforms without publishing them.
+Add `--push` only when intentionally publishing locally. Pull-request CI builds both platforms without publishing them.
+
+## Published images
+
+The `Publish container images` GitHub workflow publishes both multi-architecture images to GitHub Container Registry on:
+
+- pushes to `main`;
+- tags beginning with `v`, such as `v0.1.0`;
+- manual workflow runs.
+
+Each publication receives an immutable `sha-<commit>` tag. Branch pushes also receive the branch name, the default branch receives `latest`, and version tags retain their complete tag such as `v0.1.0`:
+
+```text
+ghcr.io/OWNER/agent-substrate-dashboard-backend:TAG
+ghcr.io/OWNER/agent-substrate-dashboard-frontend:TAG
+```
+
+The workflow uses the repository-scoped `GITHUB_TOKEN`; no registry password is required. Its publish job has `packages: write`, while the rest of the workflow remains read-only. Package visibility and access are managed in the repository or organization’s GitHub Packages settings.
 
 ## Configure an overlay
 
