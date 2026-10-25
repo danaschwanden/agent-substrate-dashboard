@@ -8,8 +8,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/danaschwanden/agent-substrate-dashboard/backend/internal/control"
-	"github.com/danaschwanden/agent-substrate-dashboard/backend/internal/httpapi"
+	"github.com/agent-substrate/agent-substrate-dashboard/backend/internal/control"
+	"github.com/agent-substrate/agent-substrate-dashboard/backend/internal/httpapi"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )

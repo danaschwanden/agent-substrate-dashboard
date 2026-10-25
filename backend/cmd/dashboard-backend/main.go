@@ -24,12 +24,12 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/danaschwanden/agent-substrate-dashboard/backend/internal/collector"
-	"github.com/danaschwanden/agent-substrate-dashboard/backend/internal/config"
-	"github.com/danaschwanden/agent-substrate-dashboard/backend/internal/control"
-	"github.com/danaschwanden/agent-substrate-dashboard/backend/internal/dashboard"
-	"github.com/danaschwanden/agent-substrate-dashboard/backend/internal/httpapi"
-	"github.com/danaschwanden/agent-substrate-dashboard/backend/internal/lifecycle"
+	"github.com/agent-substrate/agent-substrate-dashboard/backend/internal/collector"
+	"github.com/agent-substrate/agent-substrate-dashboard/backend/internal/config"
+	"github.com/agent-substrate/agent-substrate-dashboard/backend/internal/control"
+	"github.com/agent-substrate/agent-substrate-dashboard/backend/internal/dashboard"
+	"github.com/agent-substrate/agent-substrate-dashboard/backend/internal/httpapi"
+	"github.com/agent-substrate/agent-substrate-dashboard/backend/internal/lifecycle"
 	"google.golang.org/grpc/status"
 )
 

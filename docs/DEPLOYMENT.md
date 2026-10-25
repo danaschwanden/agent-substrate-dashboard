@@ -2,6 +2,8 @@
 
 The dashboard ships as two independently built images and a Kustomize base. The frontend is the only browser-facing service; it serves the Lit application and proxies `/api/v1/*` to the cluster-internal backend.
 
+For a complete copy-paste installation on an existing Agent Substrate kind cluster, start with the [kind quickstart](./KIND_QUICKSTART.md).
+
 ## Build the images
 
 Build both release images for the supported architectures:
@@ -44,16 +46,16 @@ Start with [`deploy/kustomize/base`](../deploy/kustomize/base). A consumer overl
 - both image references, preferably by digest;
 - the frontend exposure appropriate for the trusted operator network.
 
-The [kind overlay](../deploy/kustomize/overlays/kind) is a concrete development example. It exposes only the frontend through NodePort `30090`; the backend remains `ClusterIP` and a NetworkPolicy accepts backend traffic only from frontend pods.
+The [kind overlay](../deploy/kustomize/overlays/kind) is a static development example with placeholder scope values. The kind quickstart uses `scripts/install-kind.sh` to generate an overlay with the actual cluster scope. Both Services remain `ClusterIP`; browser access uses a frontend-only port-forward, and a NetworkPolicy accepts backend traffic only from frontend pods.
 
 The [digest-pinned example](../deploy/kustomize/examples/digest-pinned) demonstrates the Kustomize `images[].digest` shape. Its all-zero values are placeholders and must be replaced before deployment:
 
 ```yaml
 images:
-- name: ghcr.io/danaschwanden/agent-substrate-dashboard-backend
+- name: ghcr.io/agent-substrate/agent-substrate-dashboard-backend
   newName: registry.example/agent-substrate-dashboard-backend
   digest: sha256:REPLACE_WITH_BACKEND_DIGEST
-- name: ghcr.io/danaschwanden/agent-substrate-dashboard-frontend
+- name: ghcr.io/agent-substrate/agent-substrate-dashboard-frontend
   newName: registry.example/agent-substrate-dashboard-frontend
   digest: sha256:REPLACE_WITH_FRONTEND_DIGEST
 ```

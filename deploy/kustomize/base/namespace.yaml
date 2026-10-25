@@ -3,6 +3,7 @@ kind: Namespace
 metadata:
   name: agent-substrate-dashboard
   labels:
+    ate.dev/api-access: "true"
     pod-security.kubernetes.io/enforce: restricted
     pod-security.kubernetes.io/audit: restricted
     pod-security.kubernetes.io/warn: restricted

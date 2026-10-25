@@ -1,4 +1,4 @@
-module github.com/danaschwanden/agent-substrate-dashboard/backend
+module github.com/agent-substrate/agent-substrate-dashboard/backend
 
 go 1.27.0
 

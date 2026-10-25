@@ -1,11 +1,40 @@
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 import { parse, parseAllDocuments } from "yaml";
 
 const repositoryRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+
+function assertNoPrivatePathsOrNames(directory) {
+  const ignoredDirectories = new Set([".cache", ".git", "dist", "node_modules", "test-results"]);
+  const macHomePattern = new RegExp(["/", "Users", "/", "[^/\\s]+"].join(""), "i");
+  const windowsHomePattern = new RegExp(
+    ["[A-Z]:", "\\\\", "Users", "\\\\", "[^\\\\\\s]+"].join(""),
+    "i",
+  );
+  const removedUsernamePattern = new RegExp(["dana", "schwanden"].join(""), "i");
+  for (const entry of readdirSync(directory, { withFileTypes: true })) {
+    if (entry.isDirectory() && ignoredDirectories.has(entry.name)) {
+      continue;
+    }
+    const entryPath = path.join(directory, entry.name);
+    if (entry.isDirectory()) {
+      assertNoPrivatePathsOrNames(entryPath);
+      continue;
+    }
+    if (!entry.isFile()) {
+      continue;
+    }
+    const contents = readFileSync(entryPath, "utf8");
+    assert.doesNotMatch(contents, macHomePattern, `${entryPath} contains a local macOS home path`);
+    assert.doesNotMatch(contents, windowsHomePattern, `${entryPath} contains a local Windows home path`);
+    assert.doesNotMatch(contents, removedUsernamePattern, `${entryPath} contains a personal username`);
+  }
+}
+
+assertNoPrivatePathsOrNames(repositoryRoot);
 
 function render(relativePath) {
   const rendered = execFileSync("kubectl", ["kustomize", relativePath], {
@@ -86,6 +115,7 @@ for (const deployment of baseDeployments) {
 }
 
 const namespace = named(base, "Namespace", "agent-substrate-dashboard");
+assert.equal(namespace.metadata.labels["ate.dev/api-access"], "true");
 for (const mode of ["enforce", "audit", "warn"]) {
   assert.equal(namespace.metadata.labels[`pod-security.kubernetes.io/${mode}`], "restricted");
 }
@@ -116,15 +146,10 @@ const allowedComponents = policy.spec.ingress.flatMap((rule) => rule.from ?? [])
 assert.deepEqual(allowedComponents, ["frontend"]);
 
 const kindServices = resourcesOfKind(kind, "Service");
-const exposedServices = kindServices.filter((service) => service.spec.type !== "ClusterIP");
-assert.equal(exposedServices.length, 1, "kind must expose exactly one service");
-assert.equal(exposedServices[0].metadata.name, "agent-substrate-dashboard-frontend");
-assert.equal(exposedServices[0].spec.type, "NodePort");
-assert.equal(exposedServices[0].spec.ports[0].nodePort, 30090);
-assert.equal(
-  named(kind, "Service", "agent-substrate-dashboard-backend").spec.type,
-  "ClusterIP",
-);
+assert.equal(kindServices.length, 2);
+for (const service of kindServices) {
+  assert.equal(service.spec.type, "ClusterIP", `${service.metadata.name} must remain internal`);
+}
 
 for (const deployment of resourcesOfKind(digestPinned, "Deployment")) {
   const image = deployment.spec.template.spec.containers[0].image;

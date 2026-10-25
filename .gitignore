@@ -5,4 +5,5 @@ coverage/
 frontend/playwright-report/
 frontend/test-results/
 .cache/
+deploy/kustomize/overlays/.generated-kind/
 .DS_Store

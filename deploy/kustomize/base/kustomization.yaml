@@ -27,8 +27,8 @@ configMapGenerator:
   - DASHBOARD_OPERATION_TIMEOUT=10s
 images:
 - name: agent-substrate-dashboard-backend
-  newName: ghcr.io/danaschwanden/agent-substrate-dashboard-backend
+  newName: ghcr.io/agent-substrate/agent-substrate-dashboard-backend
   newTag: v0.1.0
 - name: agent-substrate-dashboard-frontend
-  newName: ghcr.io/danaschwanden/agent-substrate-dashboard-frontend
+  newName: ghcr.io/agent-substrate/agent-substrate-dashboard-frontend
   newTag: v0.1.0

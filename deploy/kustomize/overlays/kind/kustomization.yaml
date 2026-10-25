@@ -11,20 +11,9 @@ configMapGenerator:
   - DASHBOARD_CONTROL_ENDPOINT=api.ate-system.svc:443
   - DASHBOARD_CONTROL_SERVER_NAME=api.ate-system.svc
 images:
-- name: ghcr.io/danaschwanden/agent-substrate-dashboard-backend
+- name: ghcr.io/agent-substrate/agent-substrate-dashboard-backend
   newName: agent-substrate-dashboard-backend
   newTag: dev
-- name: ghcr.io/danaschwanden/agent-substrate-dashboard-frontend
+- name: ghcr.io/agent-substrate/agent-substrate-dashboard-frontend
   newName: agent-substrate-dashboard-frontend
   newTag: dev
-patches:
-- target:
-    kind: Service
-    name: agent-substrate-dashboard-frontend
-  patch: |-
-    - op: replace
-      path: /spec/type
-      value: NodePort
-    - op: add
-      path: /spec/ports/0/nodePort
-      value: 30090

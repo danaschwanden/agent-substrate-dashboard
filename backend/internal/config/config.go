@@ -8,8 +8,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/danaschwanden/agent-substrate-dashboard/backend/internal/control"
-	"github.com/danaschwanden/agent-substrate-dashboard/backend/internal/httpapi"
+	"github.com/agent-substrate/agent-substrate-dashboard/backend/internal/control"
+	"github.com/agent-substrate/agent-substrate-dashboard/backend/internal/httpapi"
 )
 
 const (

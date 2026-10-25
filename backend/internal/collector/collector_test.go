@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/danaschwanden/agent-substrate-dashboard/backend/internal/httpapi"
+	"github.com/agent-substrate/agent-substrate-dashboard/backend/internal/httpapi"
 	ateapi "go.ate.dev/substrate/api/ateapi/v1"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"

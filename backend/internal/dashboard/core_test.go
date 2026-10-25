@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/danaschwanden/agent-substrate-dashboard/backend/internal/httpapi"
+	"github.com/agent-substrate/agent-substrate-dashboard/backend/internal/httpapi"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )

@@ -5,7 +5,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/danaschwanden/agent-substrate-dashboard/backend/internal/httpapi"
+	"github.com/agent-substrate/agent-substrate-dashboard/backend/internal/httpapi"
 )
 
 // Observation is one complete, scoped Control API collection before history is applied.

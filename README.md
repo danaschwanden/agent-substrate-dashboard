@@ -17,6 +17,8 @@ npm --workspace frontend run test:ui
 
 Generated Go and TypeScript files are checked in. `npm run check:generated` regenerates them in a temporary directory and fails if they drift from `api/openapi.yaml`.
 
+To install the dashboard into an existing Agent Substrate kind cluster, follow the copy-paste [kind quickstart](./docs/KIND_QUICKSTART.md).
+
 The first supported Agent Substrate version is `v0.6.1-0.20261023032142-4ebd668d62e3` (`4ebd668d62e3`).
 
 ## Backend
@@ -44,6 +46,7 @@ Run `npm --workspace frontend run dev` for the dashboard. Add `?fixture=mixed` t
 
 - [Architecture](./docs/ARCHITECTURE.md)
 - [Deployment and AccessPolicy guide](./docs/DEPLOYMENT.md)
+- [kind installation quickstart](./docs/KIND_QUICKSTART.md)
 - [Implementation plan](./IMPLEMENTATION_PLAN.md)
 - [Glossary](./GLOSSARY.md)
 - [Architecture decisions](./docs/adr/)
