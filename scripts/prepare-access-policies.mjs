@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { spawnSync } from "node:child_process";
-import { mkdirSync, writeFileSync } from "node:fs";
+import { chmodSync, mkdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { parse, stringify } from "yaml";
@@ -92,6 +92,10 @@ function prepare({ name, scopeArguments, role }) {
   return { name, scopeArguments, role, action, changed, outputPath };
 }
 
+function shellQuote(value) {
+  return `'${String(value).replaceAll("'", `'"'"'`)}'`;
+}
+
 const prepared = [
   prepare({ name: "global", scopeArguments: ["--global"], role: "viewer" }),
   prepare({ name: "atespace", scopeArguments: ["-a", atespace], role: requestedRole }),
@@ -103,12 +107,27 @@ for (const candidate of prepared) {
   console.log(`  ${candidate.outputPath} (${candidate.changed ? `adds ${candidate.role}` : "already sufficient"})`);
 }
 console.log("\nAfter review, apply with:\n");
+const applyCommands = [];
 for (const candidate of prepared.filter((item) => item.changed)) {
-  const scope = candidate.scopeArguments.map((argument) => `'${argument}'`).join(" ");
-  console.log(
-    `kubectl ate ${candidate.action} access-policy ${scope} -f '${candidate.outputPath}'`,
-  );
+  const scope = candidate.scopeArguments.map(shellQuote).join(" ");
+  const command = `kubectl ate ${candidate.action} access-policy ${scope} -f ${shellQuote(candidate.outputPath)}`;
+  applyCommands.push(command);
+  console.log(command);
 }
 if (prepared.every((candidate) => !candidate.changed)) {
   console.log("# No policy update is required.");
 }
+
+const applyScriptPath = path.join(outputDirectory, "apply.sh");
+const applyScript = [
+  "#!/bin/sh",
+  "set -eu",
+  "",
+  ...(applyCommands.length > 0
+    ? applyCommands
+    : ["printf '%s\\n' 'No AccessPolicy update is required.'"]),
+  "",
+].join("\n");
+writeFileSync(applyScriptPath, applyScript);
+chmodSync(applyScriptPath, 0o700);
+console.log(`\nReviewable apply script: ${applyScriptPath}`);

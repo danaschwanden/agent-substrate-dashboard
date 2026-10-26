@@ -82,7 +82,44 @@ kubectl ate get workers
 
 An empty dashboard usually means these values do not match the actors and workers you intend to observe. Actors and workers are Control API resources, so verify them with `kubectl ate`, not by looking for actor Pods or CRDs.
 
-## 5. Build, load, and install
+## 5. Grant observe-only access
+
+The dashboard ServiceAccount needs global `viewer` to list workers and assignments, plus atespace `viewer` to list actors. AccessPolicy is a singleton in each scope, and an update replaces the complete document. The preparation command below fetches the current policies, preserves their metadata and other bindings, and writes reviewable candidates. It never applies them.
+
+```sh
+npm ci
+node scripts/prepare-access-policies.mjs \
+  --atespace "$DASHBOARD_ATESPACE" \
+  --role viewer
+sed -n '1,240p' .cache/dashboard-access/global.yaml
+sed -n '1,240p' .cache/dashboard-access/atespace.yaml
+cat .cache/dashboard-access/apply.sh
+```
+
+Stop and review all three files. `apply.sh` contains the exact `kubectl ate create` or `update` commands needed for this cluster. After confirming that it only adds the dashboard principal with `viewer`, apply the policies:
+
+```sh
+bash .cache/dashboard-access/apply.sh
+```
+
+Verify the resulting policies:
+
+```sh
+kubectl ate get access-policy --global -o yaml
+kubectl ate get access-policy -a "$DASHBOARD_ATESPACE" -o yaml
+```
+
+The expected member is:
+
+```text
+user:system:serviceaccount:agent-substrate-dashboard:agent-substrate-dashboard
+```
+
+See Agent Substrate's [authorization guide](https://github.com/agent-substrate/substrate/blob/main/docs/authorization.md#managing-access) for the role model and replacement semantics.
+
+Do not continue until both policies contain the expected member. AccessPolicy data belongs to the Agent Substrate cluster, so this step must be repeated after creating a new kind cluster.
+
+## 6. Build, load, and install
 
 Keep operations disabled for the first installation:
 
@@ -92,13 +129,15 @@ export DASHBOARD_ENABLE_OPERATIONS=false
 ./scripts/install-kind.sh
 ```
 
-The installer performs preflight checks, builds both images, loads them into the selected kind cluster, generates a local Kustomize overlay with your scope, applies it, and waits for the frontend. It does not change AccessPolicy. On a first installation, the backend may report `awaiting AccessPolicy` instead of Ready; that is expected until step 6 is complete.
+The installer performs preflight checks, builds both images, loads them into the selected kind cluster, generates a local Kustomize overlay with your scope, applies it, and waits for the Deployments. It does not change AccessPolicy. Because step 5 granted access first, the backend should become Ready during this command. If it reports `awaiting AccessPolicy`, stop and repeat step 5 before opening the dashboard.
 
-Confirm that both Pods are running:
+Confirm that both Pods are ready:
 
 ```sh
 kubectl -n agent-substrate-dashboard get pods
 kubectl -n agent-substrate-dashboard get services
+kubectl -n agent-substrate-dashboard rollout status \
+  deployment/agent-substrate-dashboard-backend --timeout=60s
 ```
 
 Both Services should remain `ClusterIP`. Browser access is established with port-forwarding in step 7; the backend is never exposed directly.
@@ -114,38 +153,6 @@ export DASHBOARD_IMAGE_TAG=v0.1.0
 export DASHBOARD_ENABLE_OPERATIONS=false
 ./scripts/install-kind.sh
 ```
-
-## 6. Grant observe-only access
-
-The dashboard ServiceAccount needs global `viewer` to list workers and assignments, plus atespace `viewer` to list actors. AccessPolicy is a singleton in each scope, and an update replaces the complete document. The preparation command below fetches the current policies, preserves their metadata and other bindings, and writes reviewable candidates. It never applies them.
-
-```sh
-npm ci
-node scripts/prepare-access-policies.mjs \
-  --atespace "$DASHBOARD_ATESPACE" \
-  --role viewer
-sed -n '1,240p' .cache/dashboard-access/global.yaml
-sed -n '1,240p' .cache/dashboard-access/atespace.yaml
-```
-
-Review both files. The preparation command prints the exact `kubectl ate create` or `update` commands needed for this cluster; copy and run those printed commands only after the files look correct.
-
-Verify the resulting policies:
-
-```sh
-kubectl ate get access-policy --global -o yaml
-kubectl ate get access-policy -a "$DASHBOARD_ATESPACE" -o yaml
-kubectl -n agent-substrate-dashboard rollout status \
-  deployment/agent-substrate-dashboard-backend --timeout=60s
-```
-
-The expected member is:
-
-```text
-user:system:serviceaccount:agent-substrate-dashboard:agent-substrate-dashboard
-```
-
-See Agent Substrate's [authorization guide](https://github.com/agent-substrate/substrate/blob/main/docs/authorization.md#managing-access) for the role model and replacement semantics.
 
 ## 7. Open and verify the dashboard
 
@@ -177,11 +184,13 @@ node scripts/prepare-access-policies.mjs \
   --atespace "$DASHBOARD_ATESPACE" \
   --role editor
 sed -n '1,240p' .cache/dashboard-access/atespace.yaml
+cat .cache/dashboard-access/apply.sh
 ```
 
-Run the printed policy command after review, then reinstall with operations enabled:
+Review and apply the generated policy script, then reinstall with operations enabled:
 
 ```sh
+bash .cache/dashboard-access/apply.sh
 export DASHBOARD_ENABLE_OPERATIONS=true
 ./scripts/install-kind.sh
 ```

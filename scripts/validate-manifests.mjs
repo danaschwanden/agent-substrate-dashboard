@@ -235,9 +235,21 @@ esac
       ],
     },
   ]);
+  const policyApplyScript = readFileSync(
+    path.join(policyTestDirectory, "apply.sh"),
+    "utf8",
+  );
+  assert.match(policyApplyScript, /kubectl ate create access-policy '--global'/);
+  assert.match(policyApplyScript, /kubectl ate update access-policy '-a' 'example'/);
 } finally {
   rmSync(policyTestDirectory, { recursive: true, force: true });
 }
+
+const kindQuickstart = readFileSync(
+  path.join(repositoryRoot, "docs/KIND_QUICKSTART.md"),
+  "utf8",
+);
+assert.match(kindQuickstart, /bash \.cache\/dashboard-access\/apply\.sh/);
 
 const publishWorkflow = parse(
   readFileSync(path.join(repositoryRoot, ".github/workflows/publish-images.yaml"), "utf8"),
